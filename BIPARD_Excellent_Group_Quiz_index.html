@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIPARD Excellent Group Quiz</title>
+<meta name="description" content="BIPARD Excellent Group Fun Quiz">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Devanagari",sans-serif;background:linear-gradient(135deg,#eef2ff,#fff7ed);color:#172033}
+.container{max-width:760px;margin:auto;padding:18px}
+.card{background:#fff;border-radius:24px;padding:24px;box-shadow:0 12px 40px rgba(31,41,55,.12);margin-top:20px}
+h1{font-size:clamp(25px,6vw,40px);margin:4px 0 8px;text-align:center}
+.subtitle{text-align:center;color:#667085;margin-bottom:22px}
+.badge{display:inline-block;background:#eef2ff;color:#4338ca;padding:7px 12px;border-radius:999px;font-weight:700;font-size:13px}
+.progress{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:16px 0 22px}
+.progress>div{height:100%;background:linear-gradient(90deg,#4f46e5,#7c3aed);width:0%;transition:.3s}
+.qno{color:#4f46e5;font-weight:800;margin-bottom:8px}
+.question{font-size:22px;line-height:1.55;font-weight:750;margin-bottom:18px}
+.option{display:block;width:100%;text-align:left;padding:14px 16px;margin:10px 0;border:2px solid #e5e7eb;border-radius:14px;background:#fff;font-size:17px;cursor:pointer;transition:.2s}
+.option:hover{border-color:#818cf8;background:#f8f8ff}
+.option.selected{border-color:#4f46e5;background:#eef2ff}
+.option.correct{border-color:#16a34a;background:#ecfdf3}
+.option.wrong{border-color:#dc2626;background:#fef2f2}
+.option:disabled{cursor:default}
+.actions{display:flex;gap:10px;justify-content:space-between;margin-top:22px}
+button{border:0;border-radius:13px;padding:13px 20px;font-size:16px;font-weight:750;cursor:pointer}
+.primary{background:#4f46e5;color:white}
+.primary:hover{background:#4338ca}
+.secondary{background:#eef2f6;color:#273244}
+button:disabled{opacity:.45;cursor:not-allowed}
+#result{display:none;text-align:center}
+.score{font-size:52px;font-weight:900;color:#4f46e5;margin:10px}
+.namebox{width:100%;padding:14px;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;margin:12px 0}
+.small{font-size:13px;color:#667085}
+.review{text-align:left;margin-top:20px}
+.review-item{padding:13px;border-radius:12px;background:#f8fafc;margin:9px 0}
+.good{color:#15803d;font-weight:700}
+.bad{color:#b91c1c;font-weight:700}
+.footer{text-align:center;color:#98a2b3;font-size:12px;margin:22px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card" id="start">
+    <div style="text-align:center"><span class="badge">BIPARD • EXCELLENT GROUP</span></div>
+    <h1>🎯 BIPARD Fun Quiz</h1>
+    <div class="subtitle">देखते हैं Excellent Group में कौन कितना Excellent है! 😄</div>
+    <input id="playerName" class="namebox" placeholder="अपना नाम लिखें (वैकल्पिक)">
+    <button class="primary" style="width:100%" onclick="startQuiz()">Quiz शुरू करें 🚀</button>
+    <p class="small" style="text-align:center;margin-top:14px">कुल 14 प्रश्न • प्रत्येक प्रश्न का एक सही उत्तर</p>
+  </div>
+
+  <div class="card" id="quiz" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="badge">Excellent Group Quiz</span>
+      <span id="counter" class="small"></span>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div id="qno" class="qno"></div>
+    <div id="question" class="question"></div>
+    <div id="options"></div>
+    <div class="actions">
+      <button class="secondary" id="prev" onclick="prevQ()">← पिछला</button>
+      <button class="primary" id="next" onclick="nextQ()" disabled>अगला →</button>
+    </div>
+  </div>
+
+  
+<div class="card" id="feedback" style="display:none">
+  <span class="badge">ONE LAST QUESTION 💬</span>
+  <h1 style="font-size:28px">15. Did you enjoy the quiz? 😊</h1>
+  <div style="display:flex;gap:12px;margin-top:22px">
+    <button class="option" style="text-align:center" onclick="submitFeedback('Yes')">Yes ✅</button>
+    <button class="option" style="text-align:center" onclick="submitFeedback('No')">No</button>
+  </div>
+</div>
+
+  <div class="card" id="result">
+    <span class="badge">QUIZ COMPLETED 🎉</span>
+    <h1 id="resultTitle">बहुत बढ़िया!</h1>
+    <div class="score" id="score"></div>
+    <div id="message"></div>
+    <button class="primary" style="margin-top:16px" onclick="restart()">फिर से खेलें 🔄</button>
+    <div class="review" id="review"></div>
+  </div>
+  <div class="footer">Made for BIPARD Excellent Group • GitHub Pages Ready</div>
+</div>
+
+<script>
+const questions = [{"q": "इनकी कुर्सी हमेशा बदल जाती है, गुस्से में फिर चंडी बन जाती है।", "options": ["पल्लवी मैम", "रिया मैम", "नेहा मैम", "नीतू मैम"], "answer": 2}, {"q": "पल दो पल के शायर है ये, आवाज से जादू बिखेरते है।", "options": ["रोहित सर", "अविनाश सर", "सत्या सर", "मुकेश सर"], "answer": 1}, {"q": "मैथिली में बड़ सुंदर बजै छी, आ flirt में त बड़ माहिर।", "options": ["भास्कर सर", "श्वेतांक सर", "ललन सर", "सर्वेश सर"], "answer": 0}, {"q": "हिंदी साहित्य से नाता है, BAS होते हुए भी खुद को RDO मानते है।", "options": ["अमरजीत सर", "अस्मित सर", "निलेश सर", "मनीष सर"], "answer": 3}, {"q": "इनमें कौन गुजिया गैंग का सदस्य नहीं है।", "options": ["सत्या सर", "रत्नेश सर", "श्वेतांक सर", "सुशांत सर"], "answer": 3}, {"q": "ये स्वयं को Blood pressure regulating Officer के रूप में परिभाषित करती है", "options": ["नीलू मैम", "संध्या मैम", "नीतू मैम", "अलीशा मैम"], "answer": 2}, {"q": "Blinkit का और इनके रोने का अजीब संयोग है।", "options": ["स्मृति मैम", "खुशबू मैम", "प्रियंका मैम", "वर्षा मैम"], "answer": 2}, {"q": "Engineer और lawyer का deadly combination ।", "options": ["पीयूष सर", "लक्ष्मीकांत सर", "अमितेन्द्र सर", "अमित बाजपेयी सर"], "answer": 3}, {"q": "इनमें से कौन सही सुमेलित नहीं है।", "options": ["अमरजीत सर - BAS", "अस्मित सर - BAS", "आरती मैम - SUPPLY INSPECTOR", "सोनम मैम - RO"], "answer": 1}, {"q": "MSP को तो जानते थे, इन्होंने NSP को भी समझा दिया।", "options": ["रिया मैम", "संध्या मैम", "सोबी मैम", "जिया मैम"], "answer": 3}, {"q": "श्रुति मैम का जबड़ा वाला फैन है, हर 2 October को पणजी जाकर चिन्मयानंद का प्रवचन सुनता है।", "options": ["सर्वेश सर", "आदित्य सर", "पीयूष सर", "संजय सर"], "answer": 0}, {"q": "इनको देखकर पता ही नहीं चलता matter sadistic है या खुशनुमा - smiley", "options": ["नीरज मैम", "पल्लवी मैम", "मुकेश सर", "जयशंकर सर"], "answer": 1}, {"q": "ई question तो साला आना ही था dsp भूरेलाल।", "options": ["रोहित सर", "संजय सर", "दीपक सर", "अत्ताउल्लाह सर"], "answer": 3}, {"q": "Class ki लेडी Don hai, ये Tom तो निलेश सर jerry है।", "options": ["रानी मैम", "मावरा मैम", "प्रियंका मैम", "अभिरुचि मैम"], "answer": 1}];
+let current=0, answers=Array(questions.length).fill(null), player="";
+
+function startQuiz(){
+  player=document.getElementById("playerName").value.trim() || "Participant";
+  document.getElementById("start").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  render();
+}
+function render(){
+  const x=questions[current];
+  document.getElementById("counter").textContent=(current+1)+" / "+questions.length;
+  document.getElementById("bar").style.width=((current+1)/questions.length*100)+"%";
+  document.getElementById("qno").textContent="प्रश्न "+(current+1);
+  document.getElementById("question").textContent=x.q;
+  const box=document.getElementById("options"); box.innerHTML="";
+  x.options.forEach((op,i)=>{
+    const b=document.createElement("button");
+    b.className="option"+(answers[current]===i?" selected":"");
+    b.textContent=String.fromCharCode(65+i)+". "+op;
+    b.onclick=()=>select(i);
+    box.appendChild(b);
+  });
+  document.getElementById("prev").disabled=current===0;
+  document.getElementById("next").disabled=answers[current]===null;
+  document.getElementById("next").textContent=current===questions.length-1?"परिणाम देखें 🏆":"अगला →";
+}
+function select(i){
+  answers[current]=i; render();
+}
+function nextQ(){
+  if(current<questions.length-1){current++;render();}
+  else finish();
+}
+function prevQ(){if(current>0){current--;render();}}
+function finish(){
+  document.getElementById("quiz").style.display="none";
+  document.getElementById("feedback").style.display="block";
+}
+function submitFeedback(value){
+  document.getElementById("feedback").style.display="none";
+  showResult(value);
+}
+function showResult(feedbackValue){
+  let score=answers.reduce((s,a,i)=>s+(a===questions[i].answer?1:0),0);
+  document.getElementById("result").style.display="block";
+  document.getElementById("resultTitle").textContent="शाबाश, "+player+"! 🎉";
+  document.getElementById("score").textContent=score+" / "+questions.length;
+  const compliments = {
+    14:"🏆 Legend! Excellent Group के असली Excellent आप ही हैं!",
+    13:"🔥 Outstanding! बस एक कदम और, Perfect 14 के लिए!",
+    12:"🌟 शानदार! आपकी तैयारी और observation दोनों कमाल हैं!",
+    11:"👏 बहुत बढ़िया! Excellent Group में आपका जलवा कायम है!",
+    10:"😎 Super! आपने quiz को काफी अच्छे से crack किया!",
+    9:"💪 Great job! थोड़ा और ध्यान और अगली बार double धमाका!",
+    8:"😊 अच्छा खेला! आधे से काफी आगे—keep it up!",
+    7:"👍 ठीक-ठाक नहीं, अच्छा प्रयास! अगली बार और ऊपर जाएंगे!",
+    6:"🙂 शुरुआत अच्छी है—अब Excellent बनने की बारी है!",
+    5:"😄 आधा रास्ता तय! अगली बार score को और ऊपर ले जाइए!",
+    4:"😉 Quiz ने आपको थोड़ा घुमाया, लेकिन हिम्मत नहीं हारी!",
+    3:"😄 अभी तो trailer था! अगली बार comeback जोरदार होना चाहिए!",
+    2:"😂 Questions ने आज बाजी मार ली—rematch बनता है!",
+    1:"😜 एक answer सही! कम से कम शुरुआत तो धमाकेदार है!",
+    0:"🤣 आज quiz ने आपको quiz कर दिया! एक और attempt तो बनता है!"
+  };
+  document.getElementById("message").innerHTML =
+    "<div style='font-size:19px;font-weight:750;margin:8px 0'>"+compliments[score]+"</div>" +
+    "<div class='small'>आपका feedback: <b>"+feedbackValue+"</b></div>";
+  const review=document.getElementById("review"); review.innerHTML="<h3>उत्तर समीक्षा</h3>";
+  questions.forEach((x,i)=>{
+    const ok=answers[i]===x.answer;
+    const d=document.createElement("div"); d.className="review-item";
+    d.innerHTML="<b>"+(i+1)+". "+x.q+"</b><br><span class='"+(ok?"good":"bad")+"'>"+(ok?"✓ सही":"✗ गलत")+"</span> — सही उत्तर: "+x.options[x.answer];
+    review.appendChild(d);
+  });
+}
+function restart(){
+  current=0;answers=Array(questions.length).fill(null);
+  document.getElementById("result").style.display="none";
+  document.getElementById("feedback").style.display="none";
+  document.getElementById("start").style.display="block";
+}
+</script>
+</body>
+</html>
